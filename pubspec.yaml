@@ -28,6 +28,9 @@ dependencies:
 
   # URL handling
   url_launcher: ^6.2.5
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

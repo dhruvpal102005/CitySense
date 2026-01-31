@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../services/auth_service.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,139 +36,149 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firstName = AuthService.getFirstName();
-    final photoUrl = AuthService.getPhotoUrl();
-
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Stack(
           children: [
             // Main Content
-            SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${_getTimeGreeting()},',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Color(0xFF6B7280),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              firstName,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF111111),
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        GestureDetector(
-                          onTap: _handleSignOut,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              color: photoUrl == null
-                                  ? const Color(0xFF111111)
-                                  : null,
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: photoUrl != null
-                                ? Image.network(
-                                    photoUrl,
-                                    width: 44,
-                                    height: 44,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            _buildInitialAvatar(firstName),
-                                  )
-                                : _buildInitialAvatar(firstName),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Summary Card
-                  _buildSummaryCard(),
-
-                  // Quick Actions
-                  const Padding(
-                    padding: EdgeInsets.only(top: 28, bottom: 14),
-                    child: Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF111111),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildActionCard(
-                          icon: LucideIcons.camera,
-                          iconColor: const Color(0xFF4F46E5),
-                          iconBgColor: const Color(0xFFEEF2FF),
-                          title: 'Report Issue',
-                          description: 'Capture & submit',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildActionCard(
-                          icon: LucideIcons.map,
-                          iconColor: const Color(0xFF16A34A),
-                          iconBgColor: const Color(0xFFF0FDF4),
-                          title: 'Explore Map',
-                          description: 'View nearby',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Activity Section
-                  const Padding(
-                    padding: EdgeInsets.only(top: 28, bottom: 14),
-                    child: Text(
-                      'Recent Activity',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF111111),
-                      ),
-                    ),
-                  ),
-                  _buildEmptyState(),
-
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-
-            // Bottom Navigation
+            if (_activeTab == 'map')
+              const MapScreen()
+            else if (_activeTab == 'home')
+              _buildDashboard()
+            else
+              Center(
+                child: Text('Coming Soon: $_activeTab'),
+              ), // Placeholder for others
+            // Bottom Navigation (visible on all tabs)
             Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomNav()),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDashboard() {
+    final firstName = AuthService.getFirstName();
+    final photoUrl = AuthService.getPhotoUrl();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_getTimeGreeting()},',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      firstName,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111111),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: _handleSignOut,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      color: photoUrl == null ? const Color(0xFF111111) : null,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: photoUrl != null
+                        ? Image.network(
+                            photoUrl,
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildInitialAvatar(firstName),
+                          )
+                        : _buildInitialAvatar(firstName),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Summary Card
+          _buildSummaryCard(),
+
+          // Quick Actions
+          const Padding(
+            padding: EdgeInsets.only(top: 28, bottom: 14),
+            child: Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111111),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  icon: LucideIcons.camera,
+                  iconColor: const Color(0xFF4F46E5),
+                  iconBgColor: const Color(0xFFEEF2FF),
+                  title: 'Report Issue',
+                  description: 'Capture & submit',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _activeTab = 'map'),
+                  child: _buildActionCard(
+                    icon: LucideIcons.map,
+                    iconColor: const Color(0xFF16A34A),
+                    iconBgColor: const Color(0xFFF0FDF4),
+                    title: 'Explore Map',
+                    description: 'View nearby',
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Activity Section
+          const Padding(
+            padding: EdgeInsets.only(top: 28, bottom: 14),
+            child: Text(
+              'Recent Activity',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111111),
+              ),
+            ),
+          ),
+          _buildEmptyState(),
+
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }
@@ -189,15 +200,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFF8FAFC)],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
+        border: Border.all(color: Colors.white, width: 1),
       ),
       child: Column(
         children: [
@@ -333,45 +349,57 @@ class _HomeScreenState extends State<HomeScreen> {
     required String description,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, size: 22, color: iconColor),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111111),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
             ),
-            child: Icon(icon, size: 22, color: iconColor),
           ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF111111),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            description,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
-          ),
-        ],
+        ),
       ),
     );
   }
