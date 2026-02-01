@@ -13,6 +13,13 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   int _currentStep = 1;
   final LatLng _defaultLocation = const LatLng(18.5204, 73.8567); // Pune
+  final TextEditingController _descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +60,23 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
 
           // Content Area
-          Expanded(
-            child: _currentStep == 1 ? _buildPhotoStep() : _buildLocationStep(),
-          ),
+          Expanded(child: _buildCurrentStep()),
         ],
       ),
     );
+  }
+
+  Widget _buildCurrentStep() {
+    switch (_currentStep) {
+      case 1:
+        return _buildPhotoStep();
+      case 2:
+        return _buildLocationStep();
+      case 3:
+        return _buildDetailsStep();
+      default:
+        return _buildPhotoStep();
+    }
   }
 
   // --- Step 1: Photo UI ---
@@ -242,7 +260,6 @@ class _ReportScreenState extends State<ReportScreen> {
                   ),
                 ],
               ),
-              // Gradient Overlay at the bottom of map to blend with card
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -353,7 +370,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        // Refresh Location Button (Visual)
+                        // Refresh Location Button
                         Container(
                           width: double.infinity,
                           height: 48,
@@ -383,90 +400,331 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                   ),
                 ),
-                // Bottom Buttons for Location Step
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    24,
-                    0,
-                    24,
-                    MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                _currentStep = 1;
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF111111)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  LucideIcons.chevronLeft,
-                                  size: 16,
-                                  color: Color(0xFF111111),
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Back',
-                                  style: TextStyle(
-                                    color: Color(0xFF111111),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // TODO: Navigate to Step 3
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF111111),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Next',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(LucideIcons.chevronRight, size: 16),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildNavButtons(
+                  onBack: () => setState(() => _currentStep = 1),
+                  onNext: () => setState(() => _currentStep = 3),
                 ),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  // --- Step 3: Details UI ---
+  Widget _buildDetailsStep() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Describe the waste',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const Text(
+                  '(Optional)',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF616161),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'You can provide additional details about the waste you are reporting. This will help our team categorize and prioritize the issue.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[400],
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Description Input
+                Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[700]!),
+                    color: Colors.transparent,
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: _descriptionController,
+                    maxLines: null,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration.collapsed(
+                      hintText: 'Description (Optional)',
+                      hintStyle: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Report Summary Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Report Summary',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111111),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8),
+                              image: const DecorationImage(
+                                image: NetworkImage(
+                                  'https://placehold.co/100x100/png',
+                                ), // Placeholder
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Photo attached',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF111111),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Size: 0.06 MB',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.mapPin,
+                            size: 16,
+                            color: Color(0xFF111111),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Wagholi, Pune',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF111111),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+
+        // Step 3 Bottom Bar (Back + Submit)
+        Container(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            MediaQuery.of(context).padding.bottom + 16,
+          ),
+          decoration: const BoxDecoration(color: Colors.white),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () => setState(() => _currentStep = 2),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF111111)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.chevronLeft,
+                          size: 16,
+                          color: Color(0xFF111111),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Back',
+                          style: TextStyle(
+                            color: Color(0xFF111111),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Submit action
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Report submitted successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E1E1E), // Almost black
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Submit',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(LucideIcons.send, size: 16), // Or check/arrow
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavButtons({
+    required VoidCallback onBack,
+    required VoidCallback onNext,
+  }) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        0,
+        24,
+        MediaQuery.of(context).padding.bottom + 16,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: onBack,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF111111)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.chevronLeft,
+                      size: 16,
+                      color: Color(0xFF111111),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Back',
+                      style: TextStyle(
+                        color: Color(0xFF111111),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: onNext,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF111111),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Next', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(width: 8),
+                    Icon(LucideIcons.chevronRight, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
