@@ -1,7 +1,9 @@
+import 'package:citysense_flutter/services/media_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'dart:io';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -14,6 +16,8 @@ class _ReportScreenState extends State<ReportScreen> {
   int _currentStep = 1;
   final LatLng _defaultLocation = const LatLng(18.5204, 73.8567); // Pune
   final TextEditingController _descriptionController = TextEditingController();
+  final MediaService _mediaService = MediaService();
+  File? _selectedImage;
 
   @override
   void dispose() {
@@ -116,26 +120,34 @@ class _ReportScreenState extends State<ReportScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFE0E0E0),
                       borderRadius: BorderRadius.circular(16),
+                      image: _selectedImage != null
+                          ? DecorationImage(
+                              image: FileImage(_selectedImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          LucideIcons.camera,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No photo selected',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[500],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: _selectedImage == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.camera,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No photo selected',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          )
+                        : null,
                   ),
                 ),
 
@@ -146,7 +158,14 @@ class _ReportScreenState extends State<ReportScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final image = await _mediaService.pickImageFromCamera();
+                      if (image != null) {
+                        setState(() {
+                          _selectedImage = image;
+                        });
+                      }
+                    },
                     icon: const Icon(LucideIcons.camera, size: 20),
                     label: const Text(
                       'Take Photo',
@@ -500,10 +519,13 @@ class _ReportScreenState extends State<ReportScreen> {
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
-                              image: const DecorationImage(
-                                image: NetworkImage(
-                                  'https://placehold.co/100x100/png',
-                                ), // Placeholder
+                              image: DecorationImage(
+                                image: _selectedImage != null
+                                    ? FileImage(_selectedImage!)
+                                    : NetworkImage(
+                                            'https://placehold.co/100x100/png',
+                                          )
+                                          as ImageProvider, // Placeholder
                                 fit: BoxFit.cover,
                               ),
                             ),
