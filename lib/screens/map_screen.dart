@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -11,10 +13,102 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // Default to a central location (e.g., Pune, India based on potential user context or generic)
-  // User can change this later with "Locate Me"
+  // Default to a central location (e.g., Pune, India)
   final LatLng _initialCenter = const LatLng(18.5204, 73.8567);
   final MapController _mapController = MapController();
+
+  Position? _currentPosition;
+  StreamSubscription<Position>? _positionStreamSubscription;
+  bool _isFirstLocationUpdate = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _startLocationUpdates();
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _startLocationUpdates() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
+
+    // Get current position once to center map immediately
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+        });
+        // Move the map, but don't change 'initialCenter' variable
+        _mapController.move(
+          LatLng(position.latitude, position.longitude),
+          15.0,
+        );
+      }
+    } catch (e) {
+      debugPrint("Error getting initial content: $e");
+    }
+
+    // Start listening to stream
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
+
+    _positionStreamSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: locationSettings,
+        ).listen((Position position) {
+          if (mounted) {
+            setState(() {
+              _currentPosition = position;
+            });
+
+            // Optional: Follow user if it's the first update or tracking mode is on
+            if (_isFirstLocationUpdate) {
+              _mapController.move(
+                LatLng(position.latitude, position.longitude),
+                15.0,
+              );
+              _isFirstLocationUpdate = false;
+            }
+          }
+        });
+  }
+
+  void _centerOnUser() {
+    if (_currentPosition != null) {
+      _mapController.move(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        15.0,
+      );
+    } else {
+      _startLocationUpdates();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +132,35 @@ class _MapScreenState extends State<MapScreen> {
                 // OpenStreetMap copyright
                 subdomains: const ['a', 'b', 'c'],
               ),
+              // User Location Marker
+              if (_currentPosition != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: LatLng(
+                        _currentPosition!.latitude,
+                        _currentPosition!.longitude,
+                      ),
+                      width: 20,
+                      height: 20,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          border: Border.all(color: Colors.white, width: 3),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               // Marker Layer for Reports (Empty for now)
-              const MarkerLayer(markers: []),
+              // const MarkerLayer(markers: []), // This was removed as user marker is added
             ],
           ),
 
@@ -53,7 +174,7 @@ class _MapScreenState extends State<MapScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -98,7 +219,7 @@ class _MapScreenState extends State<MapScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -109,7 +230,7 @@ class _MapScreenState extends State<MapScreen> {
                   _buildToolButton(LucideIcons.refreshCw, () {}),
                   _buildToolButton(
                     LucideIcons.crosshair,
-                    () {},
+                    _centerOnUser,
                   ), // Using crosshair for locate
                   _buildToolButton(LucideIcons.maximize, () {}), // Bounds/Fit
                   _buildToolButton(LucideIcons.eye, () {}), // Layers/View

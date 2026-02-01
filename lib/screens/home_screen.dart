@@ -46,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const MapScreen()
             else if (_activeTab == 'home')
               _buildDashboard()
+            else if (_activeTab == 'profile')
+              const ProfileScreen()
             else
               Center(
                 child: Text('Coming Soon: $_activeTab'),
