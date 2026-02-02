@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:citysense_flutter/services/media_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -66,15 +67,19 @@ class _PhotoStepState extends State<PhotoStep> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFE0E0E0),
                       borderRadius: BorderRadius.circular(16),
-                      image: widget.selectedImage != null
-                          ? DecorationImage(
-                              image: FileImage(widget.selectedImage!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                     ),
-                    child: widget.selectedImage == null
-                        ? Column(
+                    clipBehavior: Clip.hardEdge,
+                    child: widget.selectedImage != null
+                        ? kIsWeb
+                              ? Image.network(
+                                  widget.selectedImage!.path,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  widget.selectedImage!,
+                                  fit: BoxFit.cover,
+                                )
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -92,8 +97,7 @@ class _PhotoStepState extends State<PhotoStep> {
                                 ),
                               ),
                             ],
-                          )
-                        : null,
+                          ),
                   ),
                 ),
 
