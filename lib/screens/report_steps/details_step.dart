@@ -1,12 +1,14 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:citysense_flutter/services/gemini_service.dart';
 import 'package:citysense_flutter/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart'; // For XFile
+import 'dart:io';
 
 class DetailsStep extends StatefulWidget {
-  final File? selectedImage;
+  final XFile? selectedImage;
   final LatLng userLocation;
   final String address;
   final VoidCallback onBack;
@@ -213,16 +215,22 @@ class _DetailsStepState extends State<DetailsStep> {
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
-                              image: DecorationImage(
-                                image: widget.selectedImage != null
-                                    ? FileImage(widget.selectedImage!)
-                                    : const NetworkImage(
-                                            'https://placehold.co/100x100/png',
-                                          )
-                                          as ImageProvider,
-                                fit: BoxFit.cover,
-                              ),
                             ),
+                            clipBehavior: Clip.hardEdge,
+                            child: widget.selectedImage != null
+                                ? kIsWeb
+                                      ? Image.network(
+                                          widget.selectedImage!.path,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(widget.selectedImage!.path),
+                                          fit: BoxFit.cover,
+                                        )
+                                : Image.network(
+                                    'https://placehold.co/100x100/png',
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                           const SizedBox(width: 16),
                           Column(

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:image_picker/image_picker.dart'; // For XFile
 
 class GeminiService {
   late final GenerativeModel _model;
@@ -17,7 +18,7 @@ class GeminiService {
     _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
   }
 
-  Future<bool> containsGarbage(File imageFile) async {
+  Future<bool> containsGarbage(XFile imageFile) async {
     try {
       final imageBytes = await imageFile.readAsBytes();
       final content = [

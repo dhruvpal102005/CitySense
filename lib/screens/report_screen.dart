@@ -4,7 +4,7 @@ import 'package:citysense_flutter/screens/report_steps/photo_step.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'dart:io';
+import 'package:image_picker/image_picker.dart'; // For XFile
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -15,7 +15,7 @@ class ReportScreen extends StatefulWidget {
 
 class _ReportScreenState extends State<ReportScreen> {
   int _currentStep = 1;
-  File? _selectedImage;
+  XFile? _selectedImage;
   LatLng _userLocation = const LatLng(18.5204, 73.8567); // Default
   String _address = "";
 

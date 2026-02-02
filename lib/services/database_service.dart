@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:image_picker/image_picker.dart'; // For XFile
 
 class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   Future<void> submitReport({
-    required File image,
+    required XFile image,
     required LatLng location,
     String? description,
     required String address,
@@ -20,11 +21,13 @@ class DatabaseService {
       // 1. Upload Image to Storage
       final String fileName =
           '${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final String path = await _supabase.storage
+
+      final imageBytes = await image.readAsBytes();
+      await _supabase.storage
           .from('waste-images')
-          .upload(
+          .uploadBinary(
             fileName,
-            image,
+            imageBytes,
             fileOptions: const FileOptions(
               contentType: 'image/jpeg',
               upsert: true,
