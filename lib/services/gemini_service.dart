@@ -16,7 +16,7 @@ class GeminiService {
     if (apiKey == null) {
       throw Exception('GEMINI_API_KEY not found in .env');
     }
-    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+    _model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
   }
 
   Future<bool> containsGarbage(XFile imageFile) async {
@@ -32,6 +32,12 @@ class GeminiService {
       return text.contains('yes');
     } catch (e) {
       debugPrint('Gemini AI Error: $e');
+      if (e.toString().contains('API key not valid') ||
+          e.toString().contains('leaked')) {
+        throw Exception(
+          'Critical: Your Gemini API key is invalid or leaked. Please generate a new one.',
+        );
+      }
       // In case of error, we might want to allow it or block it.
       // For now, let's return false to be safe and maybe handle the error in UI.
       throw Exception('Failed to analyze image: $e');

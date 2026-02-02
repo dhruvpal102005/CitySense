@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -45,10 +46,13 @@ class LocationService {
         return placemarks.first;
       }
     } catch (e) {
-      print('Native geocoding failed: $e. Trying OSM Nominatim fallback...');
-      return await _getAddressFromOSM(latitude, longitude);
+      debugPrint(
+        'Native geocoding failed: $e. Trying OSM Nominatim fallback...',
+      );
     }
-    return null;
+
+    // If native failed or returned no results, try OSM
+    return await _getAddressFromOSM(latitude, longitude);
   }
 
   Future<Placemark?> _getAddressFromOSM(double lat, double lon) async {
@@ -84,7 +88,7 @@ class LocationService {
         }
       }
     } catch (e) {
-      print('OSM fallback failed: $e');
+      debugPrint('OSM fallback failed: $e');
     }
     return null;
   }
