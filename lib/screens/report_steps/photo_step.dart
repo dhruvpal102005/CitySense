@@ -3,10 +3,11 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:citysense_flutter/services/media_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart'; // For XFile
 
 class PhotoStep extends StatefulWidget {
-  final File? selectedImage;
-  final Function(File) onImageSelected;
+  final XFile? selectedImage;
+  final Function(XFile) onImageSelected;
   final VoidCallback onNext;
 
   const PhotoStep({
@@ -76,7 +77,7 @@ class _PhotoStepState extends State<PhotoStep> {
                                   fit: BoxFit.cover,
                                 )
                               : Image.file(
-                                  widget.selectedImage!,
+                                  File(widget.selectedImage!.path),
                                   fit: BoxFit.cover,
                                 )
                         : Column(

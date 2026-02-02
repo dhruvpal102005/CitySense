@@ -1,7 +1,8 @@
-import 'dart:io';
+// import 'dart:io'; // Removed for Web compatibility
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart'; // For XFile
+import 'package:flutter/foundation.dart';
 
 class GeminiService {
   late final GenerativeModel _model;
@@ -30,7 +31,7 @@ class GeminiService {
 
       return text.contains('yes');
     } catch (e) {
-      print('Gemini AI Error: $e');
+      debugPrint('Gemini AI Error: $e');
       // In case of error, we might want to allow it or block it.
       // For now, let's return false to be safe and maybe handle the error in UI.
       throw Exception('Failed to analyze image: $e');

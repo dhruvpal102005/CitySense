@@ -1,7 +1,8 @@
-import 'dart:io';
+// import 'dart:io'; // Removed for Web compatibility
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart'; // For XFile
+import 'package:flutter/foundation.dart';
 
 class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -51,7 +52,7 @@ class DatabaseService {
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      print('Database Error: $e');
+      debugPrint('Database Error: $e');
       throw Exception('Failed to submit report: $e');
     }
   }
